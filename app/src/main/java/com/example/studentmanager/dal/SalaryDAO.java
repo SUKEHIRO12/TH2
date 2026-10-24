@@ -13,6 +13,9 @@ import com.example.studentmanager.utils.SalaryCalculator;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Data Access Object for handling Salary calculations and status updates.
+ */
 public class SalaryDAO {
     private final DBHelper dbHelper;
     private final WorkLogDAO workLogDAO;
