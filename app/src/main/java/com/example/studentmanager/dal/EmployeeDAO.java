@@ -56,15 +56,20 @@ public class EmployeeDAO {
 
     public boolean updateEmployee(Employee emp) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put("code", emp.getCode());
-        values.put("fullname", emp.getFullname());
-        values.put("email", emp.getEmail());
-        values.put("phone", emp.getPhone());
-        values.put("hourlyRate", emp.getHourlyRate());
+        try {
+            ContentValues values = new ContentValues();
+            values.put("code", emp.getCode());
+            values.put("fullname", emp.getFullname());
+            values.put("email", emp.getEmail());
+            values.put("phone", emp.getPhone());
+            values.put("hourlyRate", emp.getHourlyRate());
 
-        int rows = db.update("Employee", values, "id=?", new String[]{String.valueOf(emp.getId())});
-        return rows > 0;
+            int rows = db.update("Employee", values, "id=?", new String[]{String.valueOf(emp.getId())});
+            return rows > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public boolean deleteEmployee(int employeeId) {
