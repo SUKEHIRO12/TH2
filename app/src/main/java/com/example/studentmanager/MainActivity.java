@@ -2,40 +2,69 @@ package com.example.studentmanager;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.studentmanager.activities.AttendanceActivity;
+import com.example.studentmanager.activities.EmployeeActivity;
+import com.example.studentmanager.activities.HistoryActivity;
 import com.example.studentmanager.activities.LoginActivity;
-import com.example.studentmanager.activities.ScoreActivity;
+import com.example.studentmanager.activities.MySalaryActivity;
+import com.example.studentmanager.activities.SalaryAdminActivity;
 import com.example.studentmanager.utils.SessionManager;
 
-/** Màn hình chính: hiển thị chức năng theo role. */
 public class MainActivity extends AppCompatActivity {
+    private SessionManager session;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        SessionManager session = new SessionManager(this);
+        session = new SessionManager(this);
 
         TextView tvWelcome = findViewById(R.id.tvWelcome);
-        Button btnScore = findViewById(R.id.btnScore);
+        TextView tvRole = findViewById(R.id.tvRole);
+        LinearLayout layoutAdminMenu = findViewById(R.id.layoutAdminMenu);
+        LinearLayout layoutEmployeeMenu = findViewById(R.id.layoutEmployeeMenu);
+
+        Button btnManageEmployee = findViewById(R.id.btnManageEmployee);
+        Button btnManageSalary = findViewById(R.id.btnManageSalary);
+
+        Button btnAttendance = findViewById(R.id.btnAttendance);
+        Button btnHistory = findViewById(R.id.btnHistory);
+        Button btnMySalary = findViewById(R.id.btnMySalary);
         Button btnLogout = findViewById(R.id.btnLogout);
 
-        tvWelcome.setText("Xin chào " + session.getUsername() + " (" + session.getRole() + ")");
+        tvWelcome.setText("Xin chào: " + session.getUsername());
+        tvRole.setText("Vai trò: " + session.getRole().toUpperCase());
 
-        // Chức năng riêng cho từng role
-        if (session.isTeacher()) {
-            btnScore.setText("Quản lý điểm");
+        if (session.isAdmin()) {
+            layoutAdminMenu.setVisibility(View.VISIBLE);
+            layoutEmployeeMenu.setVisibility(View.GONE);
         } else {
-            btnScore.setText("Xem điểm của tôi");
+            layoutAdminMenu.setVisibility(View.GONE);
+            layoutEmployeeMenu.setVisibility(View.VISIBLE);
         }
 
-        btnScore.setOnClickListener(v ->
-                startActivity(new Intent(this, ScoreActivity.class)));
+        btnManageEmployee.setOnClickListener(v ->
+                startActivity(new Intent(this, EmployeeActivity.class)));
+
+        btnManageSalary.setOnClickListener(v ->
+                startActivity(new Intent(this, SalaryAdminActivity.class)));
+
+        btnAttendance.setOnClickListener(v ->
+                startActivity(new Intent(this, AttendanceActivity.class)));
+
+        btnHistory.setOnClickListener(v ->
+                startActivity(new Intent(this, HistoryActivity.class)));
+
+        btnMySalary.setOnClickListener(v ->
+                startActivity(new Intent(this, MySalaryActivity.class)));
 
         btnLogout.setOnClickListener(v -> {
             session.logout();

@@ -5,15 +5,15 @@ import android.content.SharedPreferences;
 
 import com.example.studentmanager.models.Account;
 
-/** Lưu thông tin tài khoản đăng nhập bằng SharedPreferences. */
 public class SessionManager {
     private static final String PREF_NAME = "login_session";
-    private static final String KEY_ID = "account_id";
+    private static final String KEY_ACCOUNT_ID = "account_id";
     private static final String KEY_USERNAME = "username";
     private static final String KEY_ROLE = "role";
+    private static final String KEY_EMPLOYEE_ID = "employee_id";
 
-    public static final String ROLE_TEACHER = "teacher";
-    public static final String ROLE_STUDENT = "student";
+    public static final String ROLE_ADMIN = "admin";
+    public static final String ROLE_EMPLOYEE = "employee";
 
     private final SharedPreferences pref;
 
@@ -21,19 +21,44 @@ public class SessionManager {
         pref = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
     }
 
-    public void saveLogin(Account account) {
+    public void saveLogin(Account account, int employeeId) {
         pref.edit()
-                .putInt(KEY_ID, account.getId())
+                .putInt(KEY_ACCOUNT_ID, account.getId())
                 .putString(KEY_USERNAME, account.getUsername())
                 .putString(KEY_ROLE, account.getRole())
+                .putInt(KEY_EMPLOYEE_ID, employeeId)
                 .apply();
     }
 
-    public boolean isLoggedIn() { return pref.getInt(KEY_ID, -1) != -1; }
-    public int getAccountId() { return pref.getInt(KEY_ID, -1); }
-    public String getUsername() { return pref.getString(KEY_USERNAME, ""); }
-    public String getRole() { return pref.getString(KEY_ROLE, ""); }
-    public boolean isTeacher() { return ROLE_TEACHER.equals(getRole()); }
+    public boolean isLoggedIn() {
+        return pref.getInt(KEY_ACCOUNT_ID, -1) != -1;
+    }
 
-    public void logout() { pref.edit().clear().apply(); }
+    public int getAccountId() {
+        return pref.getInt(KEY_ACCOUNT_ID, -1);
+    }
+
+    public String getUsername() {
+        return pref.getString(KEY_USERNAME, "");
+    }
+
+    public String getRole() {
+        return pref.getString(KEY_ROLE, "");
+    }
+
+    public int getEmployeeId() {
+        return pref.getInt(KEY_EMPLOYEE_ID, -1);
+    }
+
+    public boolean isAdmin() {
+        return ROLE_ADMIN.equalsIgnoreCase(getRole());
+    }
+
+    public boolean isEmployee() {
+        return ROLE_EMPLOYEE.equalsIgnoreCase(getRole());
+    }
+
+    public void logout() {
+        pref.edit().clear().apply();
+    }
 }
