@@ -7,16 +7,10 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import com.example.studentmanager.models.Account;
-import com.example.studentmanager.models.Score;
-import com.example.studentmanager.models.Student;
-import com.example.studentmanager.models.Teacher;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class DBHelper extends SQLiteOpenHelper {
-    private static final String DB_NAME = "studentmanager.db";
-    private static final int DB_VERSION = 1; // đổi schema thì tăng số này (hoặc gỡ app cài lại)
+    private static final String DB_NAME = "employeemanager.db";
+    private static final int DB_VERSION = 2;
 
     public DBHelper(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
@@ -30,70 +24,104 @@ public class DBHelper extends SQLiteOpenHelper {
                 "password TEXT NOT NULL, " +
                 "role TEXT NOT NULL)");
 
-        db.execSQL("CREATE TABLE Student(" +
+        db.execSQL("CREATE TABLE Employee(" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "code TEXT UNIQUE NOT NULL, " +
-                "fullname TEXT, email TEXT, " +
+                "fullname TEXT, email TEXT, phone TEXT, " +
+                "hourlyRate REAL, " +
                 "accountId INTEGER)");
 
-        db.execSQL("CREATE TABLE Teacher(" +
+        db.execSQL("CREATE TABLE WorkLog(" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "fullname TEXT, email TEXT, " +
-                "accountId INTEGER)");
+                "employeeId INTEGER, " +
+                "workDate TEXT, " +
+                "checkInTime TEXT, " +
+                "checkOutTime TEXT, " +
+                "totalHours REAL, " +
+                "status TEXT)");
 
-        db.execSQL("CREATE TABLE Score(" +
+        db.execSQL("CREATE TABLE Salary(" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "studentCode TEXT, teacherCode TEXT, " +
-                "subject TEXT, score REAL)");
+                "employeeId INTEGER, " +
+                "month INTEGER, " +
+                "year INTEGER, " +
+                "totalHours REAL, " +
+                "overtimeHours REAL, " +
+                "totalSalary REAL, " +
+                "status TEXT)");
 
         seed(db);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS Score");
-        db.execSQL("DROP TABLE IF EXISTS Teacher");
-        db.execSQL("DROP TABLE IF EXISTS Student");
+        db.execSQL("DROP TABLE IF EXISTS Salary");
+        db.execSQL("DROP TABLE IF EXISTS WorkLog");
+        db.execSQL("DROP TABLE IF EXISTS Employee");
         db.execSQL("DROP TABLE IF EXISTS Account");
         onCreate(db);
     }
 
-    /** Dữ liệu mẫu để test: teacher1 / 123456 (giáo viên), sv001 / 123456 (sinh viên). */
     private void seed(SQLiteDatabase db) {
-        long tAcc = insertAccount(db, "teacher1", "123456", "teacher");
-        long sAcc = insertAccount(db, "sv001", "123456", "student");
+        // Seed Admin account
+        ContentValues adminAcc = new ContentValues();
+        adminAcc.put("username", "admin");
+        adminAcc.put("password", "123456");
+        adminAcc.put("role", "admin");
+        db.insert("Account", null, adminAcc);
 
-        ContentValues t = new ContentValues();
-        t.put("fullname", "Nguyen Van A");
-        t.put("email", "gv@example.com");
-        t.put("accountId", tAcc);
-        db.insert("Teacher", null, t);
+        // Seed Employee 1 account & profile
+        ContentValues emp1Acc = new ContentValues();
+        emp1Acc.put("username", "emp01");
+        emp1Acc.put("password", "123456");
+        emp1Acc.put("role", "employee");
+        long emp1AccId = db.insert("Account", null, emp1Acc);
 
-        ContentValues s = new ContentValues();
-        s.put("code", "SV001");
-        s.put("fullname", "Tran Thi B");
-        s.put("email", "sv001@example.com");
-        s.put("accountId", sAcc);
-        db.insert("Student", null, s);
+        ContentValues emp1 = new ContentValues();
+        emp1.put("code", "EMP01");
+        emp1.put("fullname", "Nguyen Van An");
+        emp1.put("email", "an.nguyen@company.com");
+        emp1.put("phone", "0901234567");
+        emp1.put("hourlyRate", 50000.0);
+        emp1.put("accountId", emp1AccId);
+        long emp1Id = db.insert("Employee", null, emp1);
 
-        ContentValues sc = new ContentValues();
-        sc.put("studentCode", "SV001");
-        sc.put("teacherCode", "1");
-        sc.put("subject", "Mobile App");
-        sc.put("score", 9.0);
-        db.insert("Score", null, sc);
+        // Seed Employee 2 account & profile
+        ContentValues emp2Acc = new ContentValues();
+        emp2Acc.put("username", "emp02");
+        emp2Acc.put("password", "123456");
+        emp2Acc.put("role", "employee");
+        long emp2AccId = db.insert("Account", null, emp2Acc);
+
+        ContentValues emp2 = new ContentValues();
+        emp2.put("code", "EMP02");
+        emp2.put("fullname", "Tran Thi Binh");
+        emp2.put("email", "binh.tran@company.com");
+        emp2.put("phone", "0987654321");
+        emp2.put("hourlyRate", 60000.0);
+        emp2.put("accountId", emp2AccId);
+        long emp2Id = db.insert("Employee", null, emp2);
+
+        // Seed some sample completed WorkLogs for testing salary calculation
+        ContentValues log1 = new ContentValues();
+        log1.put("employeeId", emp1Id);
+        log1.put("workDate", "2026-10-20");
+        log1.put("checkInTime", "08:00");
+        log1.put("checkOutTime", "17:00");
+        log1.put("totalHours", 9.0);
+        log1.put("status", "COMPLETED");
+        db.insert("WorkLog", null, log1);
+
+        ContentValues log2 = new ContentValues();
+        log2.put("employeeId", emp1Id);
+        log2.put("workDate", "2026-10-21");
+        log2.put("checkInTime", "08:00");
+        log2.put("checkOutTime", "16:00");
+        log2.put("totalHours", 8.0);
+        log2.put("status", "COMPLETED");
+        db.insert("WorkLog", null, log2);
     }
 
-    private long insertAccount(SQLiteDatabase db, String u, String p, String r) {
-        ContentValues v = new ContentValues();
-        v.put("username", u);
-        v.put("password", p);
-        v.put("role", r);
-        return db.insert("Account", null, v);
-    }
-
-    // ===================== ACCOUNT =====================
-    /** Trả về Account nếu đúng username + password, ngược lại null. */
     public Account login(String username, String password) {
         SQLiteDatabase db = getReadableDatabase();
         Cursor c = db.rawQuery(
@@ -105,75 +133,5 @@ public class DBHelper extends SQLiteOpenHelper {
         }
         c.close();
         return acc;
-    }
-
-    // ===================== STUDENT / TEACHER =====================
-    public Student getStudentByAccountId(int accountId) {
-        SQLiteDatabase db = getReadableDatabase();
-        Cursor c = db.rawQuery(
-                "SELECT id, code, fullname, email, accountId FROM Student WHERE accountId=?",
-                new String[]{String.valueOf(accountId)});
-        Student s = null;
-        if (c.moveToFirst()) {
-            s = new Student(c.getInt(0), c.getString(1), c.getString(2), c.getString(3), c.getInt(4));
-        }
-        c.close();
-        return s;
-    }
-
-    public Teacher getTeacherByAccountId(int accountId) {
-        SQLiteDatabase db = getReadableDatabase();
-        Cursor c = db.rawQuery(
-                "SELECT id, fullname, email, accountId FROM Teacher WHERE accountId=?",
-                new String[]{String.valueOf(accountId)});
-        Teacher t = null;
-        if (c.moveToFirst()) {
-            t = new Teacher(c.getInt(0), c.getString(1), c.getString(2), c.getInt(3));
-        }
-        c.close();
-        return t;
-    }
-
-    // ===================== SCORE (mẫu CRUD, copy sửa cho bảng khác) =====================
-    public long insertScore(Score s) {
-        ContentValues v = new ContentValues();
-        v.put("studentCode", s.getStudentCode());
-        v.put("teacherCode", s.getTeacherCode());
-        v.put("subject", s.getSubject());
-        v.put("score", s.getScore());
-        return getWritableDatabase().insert("Score", null, v);
-    }
-
-    public int updateScore(Score s) {
-        ContentValues v = new ContentValues();
-        v.put("studentCode", s.getStudentCode());
-        v.put("teacherCode", s.getTeacherCode());
-        v.put("subject", s.getSubject());
-        v.put("score", s.getScore());
-        return getWritableDatabase().update("Score", v, "id=?", new String[]{String.valueOf(s.getId())});
-    }
-
-    public int deleteScore(int id) {
-        return getWritableDatabase().delete("Score", "id=?", new String[]{String.valueOf(id)});
-    }
-
-    public List<Score> getAllScores() {
-        return queryScores("SELECT * FROM Score ORDER BY id DESC", null);
-    }
-
-    public List<Score> getScoresByStudentCode(String studentCode) {
-        return queryScores("SELECT * FROM Score WHERE studentCode=? ORDER BY id DESC",
-                new String[]{studentCode});
-    }
-
-    private List<Score> queryScores(String sql, String[] args) {
-        List<Score> list = new ArrayList<>();
-        Cursor c = getReadableDatabase().rawQuery(sql, args);
-        while (c.moveToNext()) {
-            list.add(new Score(c.getInt(0), c.getString(1), c.getString(2),
-                    c.getString(3), c.getDouble(4)));
-        }
-        c.close();
-        return list;
     }
 }

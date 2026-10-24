@@ -11,13 +11,16 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.studentmanager.MainActivity;
 import com.example.studentmanager.R;
 import com.example.studentmanager.dal.DBHelper;
+import com.example.studentmanager.dal.EmployeeDAO;
 import com.example.studentmanager.models.Account;
+import com.example.studentmanager.models.Employee;
 import com.example.studentmanager.utils.SessionManager;
 
 public class LoginActivity extends AppCompatActivity {
     private EditText edtUsername, edtPassword;
     private Button btnLogin;
     private DBHelper db;
+    private EmployeeDAO employeeDAO;
     private SessionManager session;
 
     @Override
@@ -25,13 +28,14 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         session = new SessionManager(this);
-        if (session.isLoggedIn()) { // đã đăng nhập từ trước -> vào thẳng
+        if (session.isLoggedIn()) {
             goToMain();
             return;
         }
 
         setContentView(R.layout.activity_login);
         db = new DBHelper(this);
+        employeeDAO = new EmployeeDAO(this);
 
         edtUsername = findViewById(R.id.edtUsername);
         edtPassword = findViewById(R.id.edtPassword);
@@ -45,17 +49,26 @@ public class LoginActivity extends AppCompatActivity {
         String p = edtPassword.getText().toString().trim();
 
         if (u.isEmpty() || p.isEmpty()) {
-            Toast.makeText(this, "Nhập đủ username và password", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Vui lòng nhập tên đăng nhập và mật khẩu", Toast.LENGTH_SHORT).show();
             return;
         }
 
         Account acc = db.login(u, p);
         if (acc == null) {
-            Toast.makeText(this, "Sai tài khoản hoặc mật khẩu", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Sai tài khoản hoặc mật khẩu!", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        session.saveLogin(acc);
+        int employeeId = -1;
+        if (SessionManager.ROLE_EMPLOYEE.equalsIgnoreCase(acc.getRole())) {
+            Employee emp = employeeDAO.getEmployeeByAccountId(acc.getId());
+            if (emp != null) {
+                employeeId = emp.getId();
+            }
+        }
+
+        session.saveLogin(acc, employeeId);
+        Toast.makeText(this, "Đăng nhập thành công với vai trò: " + acc.getRole(), Toast.LENGTH_SHORT).show();
         goToMain();
     }
 
