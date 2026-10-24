@@ -23,6 +23,9 @@ import com.example.studentmanager.models.Employee;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Admin screen for managing employees with realtime search and CRUD dialogs.
+ */
 public class EmployeeActivity extends AppCompatActivity {
     private EditText edtSearch;
     private Button btnSearch, btnAddEmployee;
