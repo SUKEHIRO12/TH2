@@ -23,6 +23,9 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+/**
+ * Admin screen for company-wide salary calculation and payment status transitions.
+ */
 public class SalaryAdminActivity extends AppCompatActivity {
     private EditText edtMonth, edtYear;
     private Button btnCalculateSalary;
